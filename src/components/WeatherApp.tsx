@@ -74,15 +74,26 @@ const WeatherApp: React.FC = () => {
       // Fetch real data from WeatherAPI
       const API_KEY = '949c528d47c74bffbf242438253107';
 
-      const response = await fetch(
-        `https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${location.lat},${location.lon}&days=7&aqi=no&alerts=no`
-      );
+      // Try different location formats for better API response
+      let apiUrl = `https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&days=7&aqi=no&alerts=no&q=`;
+      
+      // Try location name first, then coordinates as fallback
+      const locationQuery = location.url || `${location.name},${location.region},${location.country}`;
+      
+      const response = await fetch(apiUrl + encodeURIComponent(locationQuery));
       
       if (!response.ok) {
-        throw new Error('Weather data not available');
+        throw new Error(`Weather API error: ${response.status}`);
       }
       
       const data: WeatherData = await response.json();
+      
+      // Validate that we got actual weather data
+      if (!data.current || !data.current.temp_c || !data.current.condition) {
+        console.log('API returned incomplete data:', data);
+        throw new Error('Incomplete weather data received');
+      }
+      
       setWeatherData(data);
     } catch (err) {
       console.error('Error fetching weather:', err);
