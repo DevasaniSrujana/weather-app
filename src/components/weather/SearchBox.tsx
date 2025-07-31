@@ -36,21 +36,8 @@ export const SearchBox: React.FC<SearchBoxProps> = ({ onLocationSelect }) => {
     setLoading(true);
     
     try {
-      // Try to use real API, fallback to mock data
-      const API_KEY = 'YOUR_API_KEY'; // Replace with actual API key
-      
-      if (API_KEY === 'YOUR_API_KEY') {
-        // Use mock data when no API key is provided
-        const filtered = mockLocationResults.filter(location =>
-          location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          location.region.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          location.country.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-        setSuggestions(filtered);
-        setIsOpen(true);
-        setLoading(false);
-        return;
-      }
+      // Fetch real data from WeatherAPI
+      const API_KEY = '949c528d47c74bffbf242438253107';
 
       const response = await fetch(
         `https://api.weatherapi.com/v1/search.json?key=${API_KEY}&q=${encodeURIComponent(searchQuery)}`

@@ -71,17 +71,8 @@ const WeatherApp: React.FC = () => {
     setError(null);
     
     try {
-      // Try to fetch real data, fallback to mock data
-      const API_KEY = 'YOUR_API_KEY'; // Replace with actual API key
-      
-      if (API_KEY === 'YOUR_API_KEY') {
-        // Use mock data when no API key is provided
-        setTimeout(() => {
-          setWeatherData(mockWeatherData);
-          setLoading(false);
-        }, 1000);
-        return;
-      }
+      // Fetch real data from WeatherAPI
+      const API_KEY = '949c528d47c74bffbf242438253107';
 
       const response = await fetch(
         `https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${location.lat},${location.lon}&days=7&aqi=no&alerts=no`
