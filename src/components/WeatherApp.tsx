@@ -74,25 +74,33 @@ const WeatherApp: React.FC = () => {
       // Fetch real data from WeatherAPI
       const API_KEY = '949c528d47c74bffbf242438253107';
 
-      // Try different location formats for better API response
-      let apiUrl = `https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&days=7&aqi=no&alerts=no&q=`;
+      // Use location name for better API response
+      const locationQuery = location.name;
       
-      // Try location name first, then coordinates as fallback
-      const locationQuery = location.url || `${location.name},${location.region},${location.country}`;
+      // Get current weather and forecast separately for better reliability
+      const [currentResponse, forecastResponse] = await Promise.all([
+        fetch(`https://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=${encodeURIComponent(locationQuery)}&aqi=no`),
+        fetch(`https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${encodeURIComponent(locationQuery)}&days=7&aqi=no&alerts=no`)
+      ]);
       
-      const response = await fetch(apiUrl + encodeURIComponent(locationQuery));
-      
-      if (!response.ok) {
-        throw new Error(`Weather API error: ${response.status}`);
+      if (!currentResponse.ok) {
+        throw new Error(`Current weather API error: ${currentResponse.status}`);
       }
       
-      const data: WeatherData = await response.json();
+      const currentData = await currentResponse.json();
+      let forecastData = null;
       
-      // Validate that we got actual weather data
-      if (!data.current || !data.current.temp_c || !data.current.condition) {
-        console.log('API returned incomplete data:', data);
-        throw new Error('Incomplete weather data received');
+      // Forecast is optional - if it fails, we'll still show current weather
+      if (forecastResponse.ok) {
+        forecastData = await forecastResponse.json();
       }
+      
+      // Combine the data into expected format
+      const data: WeatherData = {
+        location: currentData.location,
+        current: currentData.current,
+        forecast: forecastData?.forecast || { forecastday: [] }
+      };
       
       setWeatherData(data);
     } catch (err) {
