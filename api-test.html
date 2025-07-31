@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Weather API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { background: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>🌤️ Weather API Test</h1>
+    
+    <div>
+        <label>API Key: </label>
+        <input type="text" id="apiKey" placeholder="Enter your API key" style="width: 300px; padding: 5px;">
+        <button onclick="testAPI()">Test API</button>
+    </div>
+    
+    <div id="result"></div>
+
+    <script>
+        async function testAPI() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const resultDiv = document.getElementById('result');
+            
+            if (!apiKey) {
+                resultDiv.innerHTML = '<div class="result error">Please enter an API key</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<div class="result">Testing API...</div>';
+            
+            try {
+                const url = `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=London&aqi=no`;
+                console.log('Testing URL:', url);
+                
+                const response = await fetch(url);
+                const responseText = await response.text();
+                
+                console.log('Response status:', response.status);
+                console.log('Response text:', responseText);
+                
+                if (!response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="result error">
+                            <h3>❌ API Test Failed</h3>
+                            <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                            <p><strong>Response:</strong></p>
+                            <pre>${responseText}</pre>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const data = JSON.parse(responseText);
+                
+                if (data.error) {
+                    resultDiv.innerHTML = `
+                        <div class="result error">
+                            <h3>❌ API Error</h3>
+                            <p><strong>Error:</strong> ${data.error.message}</p>
+                            <p><strong>Code:</strong> ${data.error.code}</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                resultDiv.innerHTML = `
+                    <div class="result success">
+                        <h3>✅ API Test Successful!</h3>
+                        <p><strong>Location:</strong> ${data.location.name}, ${data.location.country}</p>
+                        <p><strong>Temperature:</strong> ${data.current.temp_c}°C</p>
+                        <p><strong>Condition:</strong> ${data.current.condition.text}</p>
+                        <p><strong>Humidity:</strong> ${data.current.humidity}%</p>
+                        <p><strong>Wind:</strong> ${data.current.wind_kph} km/h</p>
+                        <hr>
+                        <p><strong>Your API key is working! 🎉</strong></p>
+                        <p>Copy this API key and use it in your weather app.</p>
+                    </div>
+                `;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <h3>❌ Test Failed</h3>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <p>This might be a network issue or invalid API key.</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html> 

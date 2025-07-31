@@ -56,6 +56,108 @@ export interface LocationResult {
   url: string;
 }
 
+// Generate fresh mock data for each location
+const generateFreshMockData = (location: LocationResult): WeatherData => {
+  // Generate dynamic dates for the next 7 days
+  const generateDynamicDates = () => {
+    const dates = [];
+    const today = new Date();
+    
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      dates.push(date.toISOString().split('T')[0]); // Format: YYYY-MM-DD
+    }
+    
+    return dates;
+  };
+
+  // Generate dynamic weather conditions for variety
+  const generateWeatherConditions = () => {
+    const conditions = [
+      { text: "Sunny", icon: "//cdn.weatherapi.com/weather/64x64/day/113.png", code: 113 },
+      { text: "Partly cloudy", icon: "//cdn.weatherapi.com/weather/64x64/day/116.png", code: 116 },
+      { text: "Cloudy", icon: "//cdn.weatherapi.com/weather/64x64/day/119.png", code: 119 },
+      { text: "Light rain", icon: "//cdn.weatherapi.com/weather/64x64/day/296.png", code: 296 },
+      { text: "Overcast", icon: "//cdn.weatherapi.com/weather/64x64/day/122.png", code: 122 },
+      { text: "Mist", icon: "//cdn.weatherapi.com/weather/64x64/day/143.png", code: 143 },
+      { text: "Fog", icon: "//cdn.weatherapi.com/weather/64x64/day/248.png", code: 248 }
+    ];
+    
+    return conditions;
+  };
+
+  // Generate dynamic temperatures based on season and location
+  const generateTemperatures = () => {
+    const currentMonth = new Date().getMonth();
+    let baseTemp = 22; // Default temperature
+    
+    // Adjust temperature based on season
+    if (currentMonth >= 11 || currentMonth <= 1) { // Winter (Dec, Jan, Feb)
+      baseTemp = 8;
+    } else if (currentMonth >= 2 && currentMonth <= 4) { // Spring (Mar, Apr, May)
+      baseTemp = 18;
+    } else if (currentMonth >= 5 && currentMonth <= 7) { // Summer (Jun, Jul, Aug)
+      baseTemp = 28;
+    } else { // Fall (Sep, Oct, Nov)
+      baseTemp = 15;
+    }
+    
+    // Add some variation based on location
+    const locationVariation = (location.name.length + location.id) % 10 - 5;
+    return baseTemp + locationVariation;
+  };
+
+  const baseTemp = generateTemperatures();
+  const conditions = generateWeatherConditions();
+  
+  // Generate current weather
+  const currentCondition = conditions[Math.floor(Math.random() * conditions.length)];
+  const currentTemp = baseTemp + Math.floor(Math.random() * 6) - 3;
+  
+  return {
+    location: {
+      name: location.name,
+      region: location.region,
+      country: location.country
+    },
+    current: {
+      temp_c: currentTemp,
+      temp_f: Math.round((currentTemp * 9/5) + 32),
+      condition: currentCondition,
+      wind_kph: 10 + Math.floor(Math.random() * 20),
+      wind_mph: Math.round((10 + Math.floor(Math.random() * 20)) * 0.621371),
+      humidity: 40 + Math.floor(Math.random() * 40),
+      feelslike_c: currentTemp + Math.floor(Math.random() * 4) - 2,
+      feelslike_f: Math.round(((currentTemp + Math.floor(Math.random() * 4) - 2) * 9/5) + 32)
+    },
+    forecast: {
+      forecastday: generateDynamicDates().map((date, index) => {
+        const condition = conditions[(index + location.id) % conditions.length];
+        
+        // Generate varied temperatures
+        const maxTemp = baseTemp + Math.floor(Math.random() * 8) - 4;
+        const minTemp = maxTemp - Math.floor(Math.random() * 8) - 2;
+        
+        return {
+          date: date,
+          day: {
+            maxtemp_c: maxTemp,
+            maxtemp_f: Math.round((maxTemp * 9/5) + 32),
+            mintemp_c: minTemp,
+            mintemp_f: Math.round((minTemp * 9/5) + 32),
+            condition: condition
+          },
+          astro: {
+            sunrise: `${6 + Math.floor(Math.random() * 2)}:${10 + Math.floor(Math.random() * 20)} AM`,
+            sunset: `${5 + Math.floor(Math.random() * 2)}:${30 + Math.floor(Math.random() * 30)} PM`
+          }
+        };
+      })
+    }
+  };
+};
+
 const WeatherApp: React.FC = () => {
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -71,31 +173,40 @@ const WeatherApp: React.FC = () => {
     setError(null);
     
     try {
-      // Fetch real data from WeatherAPI
-      const API_KEY = '949c528d47c74bffbf242438253107';
-
-      // Use location name for better API response
-      const locationQuery = location.name;
+      // TEMPORARILY USING MOCK DATA UNTIL YOU GET A WORKING API KEY
       
-      // Get current weather and forecast separately for better reliability
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Generate fresh mock data for this specific location
+      const freshMockData = generateFreshMockData(location);
+      
+      setWeatherData(freshMockData);
+      
+      /* 
+      // UNCOMMENT THIS WHEN YOU HAVE A WORKING API KEY
+      const API_KEY = 'YOUR_WORKING_API_KEY_HERE';
+      
+      const locationQuery = location.name;
+      const currentUrl = `https://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=${encodeURIComponent(locationQuery)}&aqi=no`;
+      const forecastUrl = `https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${encodeURIComponent(locationQuery)}&days=7&aqi=no&alerts=no`;
+      
       const [currentResponse, forecastResponse] = await Promise.all([
-        fetch(`https://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=${encodeURIComponent(locationQuery)}&aqi=no`),
-        fetch(`https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${encodeURIComponent(locationQuery)}&days=7&aqi=no&alerts=no`)
+        fetch(currentUrl),
+        fetch(forecastUrl)
       ]);
       
       if (!currentResponse.ok) {
-        throw new Error(`Current weather API error: ${currentResponse.status}`);
+        throw new Error(`Weather API error: ${currentResponse.status}`);
       }
       
       const currentData = await currentResponse.json();
       let forecastData = null;
       
-      // Forecast is optional - if it fails, we'll still show current weather
       if (forecastResponse.ok) {
         forecastData = await forecastResponse.json();
       }
       
-      // Combine the data into expected format
       const data: WeatherData = {
         location: currentData.location,
         current: currentData.current,
@@ -103,10 +214,13 @@ const WeatherApp: React.FC = () => {
       };
       
       setWeatherData(data);
+      */
+      
     } catch (err) {
-      console.error('Error fetching weather:', err);
-      // Fallback to mock data
-      setWeatherData(mockWeatherData);
+      setError(err instanceof Error ? err.message : 'Failed to fetch weather data');
+      // Fallback to fresh mock data
+      const freshMockData = generateFreshMockData(location);
+      setWeatherData(freshMockData);
     } finally {
       setLoading(false);
     }

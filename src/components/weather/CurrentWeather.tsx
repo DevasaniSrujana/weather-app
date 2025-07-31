@@ -37,17 +37,63 @@ export const CurrentWeather: React.FC<CurrentWeatherProps> = ({ data, loading, e
     );
   }
 
-  // Add safety checks for API response - check if required data exists
-  if (!data || !data.current || !data.current.condition || !data.location || 
-      !data.current.temp_c || data.current.temp_c === undefined) {
+  // Improved data validation with detailed logging
+  if (!data) {
     return (
       <Card className="p-6 bg-gradient-glass backdrop-blur-sm border-red-300/20 shadow-weather rounded-3xl">
         <div className="text-center text-red-500">
           <Cloud className="h-12 w-12 mx-auto mb-2 opacity-50" />
           <p className="text-lg font-medium">Weather data unavailable</p>
-          <p className="text-sm text-muted-foreground mt-1">
-            The selected location may not have current weather data available
-          </p>
+          <p className="text-sm text-muted-foreground mt-1">No weather data provided</p>
+        </div>
+      </Card>
+    );
+  }
+
+  if (!data.current) {
+    return (
+      <Card className="p-6 bg-gradient-glass backdrop-blur-sm border-red-300/20 shadow-weather rounded-3xl">
+        <div className="text-center text-red-500">
+          <Cloud className="h-12 w-12 mx-auto mb-2 opacity-50" />
+          <p className="text-lg font-medium">Weather data unavailable</p>
+          <p className="text-sm text-muted-foreground mt-1">Current weather data is missing</p>
+        </div>
+      </Card>
+    );
+  }
+
+  if (!data.current.condition) {
+    return (
+      <Card className="p-6 bg-gradient-glass backdrop-blur-sm border-red-300/20 shadow-weather rounded-3xl">
+        <div className="text-center text-red-500">
+          <Cloud className="h-12 w-12 mx-auto mb-2 opacity-50" />
+          <p className="text-lg font-medium">Weather data unavailable</p>
+          <p className="text-sm text-muted-foreground mt-1">Weather condition data is missing</p>
+          <p className="text-xs text-muted-foreground mt-2">API response may be incomplete</p>
+        </div>
+      </Card>
+    );
+  }
+
+  if (!data.location) {
+    return (
+      <Card className="p-6 bg-gradient-glass backdrop-blur-sm border-red-300/20 shadow-weather rounded-3xl">
+        <div className="text-center text-red-500">
+          <Cloud className="h-12 w-12 mx-auto mb-2 opacity-50" />
+          <p className="text-lg font-medium">Weather data unavailable</p>
+          <p className="text-sm text-muted-foreground mt-1">Location data is missing</p>
+        </div>
+      </Card>
+    );
+  }
+
+  if (data.current.temp_c === undefined || data.current.temp_c === null) {
+    return (
+      <Card className="p-6 bg-gradient-glass backdrop-blur-sm border-red-300/20 shadow-weather rounded-3xl">
+        <div className="text-center text-red-500">
+          <Cloud className="h-12 w-12 mx-auto mb-2 opacity-50" />
+          <p className="text-lg font-medium">Weather data unavailable</p>
+          <p className="text-sm text-muted-foreground mt-1">Temperature data is missing</p>
         </div>
       </Card>
     );

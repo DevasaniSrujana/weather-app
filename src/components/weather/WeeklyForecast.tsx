@@ -40,12 +40,28 @@ export const WeeklyForecast: React.FC<WeeklyForecastProps> = ({ data, loading })
     }
   };
 
+  // Check if we have forecast data
+  if (!data?.forecast?.forecastday || data.forecast.forecastday.length === 0) {
+    return (
+      <Card className="p-6 bg-gradient-glass backdrop-blur-sm border-white/20 shadow-weather rounded-3xl">
+        <h3 className="text-lg font-semibold text-card-foreground mb-4">7-Day Forecast</h3>
+        <div className="text-center text-muted-foreground">
+          <p>Forecast data not available</p>
+          <p className="text-sm mt-1">This might be mock data or API issue</p>
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <Card className="p-6 bg-gradient-glass backdrop-blur-sm border-white/20 shadow-weather rounded-3xl 
                      hover:shadow-glow transition-shadow duration-500">
       <h3 className="text-lg font-semibold text-card-foreground mb-6 flex items-center">
         <span className="w-1 h-6 bg-primary rounded-full mr-3"></span>
         7-Day Forecast
+        <span className="ml-2 text-sm text-muted-foreground">
+          ({data.forecast.forecastday.length} days)
+        </span>
       </h3>
       
       <div className="space-y-3">
@@ -64,6 +80,12 @@ export const WeeklyForecast: React.FC<WeeklyForecastProps> = ({ data, loading })
               </div>
               <div className="text-sm text-muted-foreground">
                 {day.day.condition.text}
+              </div>
+              <div className="text-xs text-muted-foreground/70">
+                {new Date(day.date).toLocaleDateString('en-US', { 
+                  month: 'short', 
+                  day: 'numeric' 
+                })}
               </div>
             </div>
 
