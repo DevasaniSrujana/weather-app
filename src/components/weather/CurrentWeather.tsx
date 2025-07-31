@@ -37,8 +37,20 @@ export const CurrentWeather: React.FC<CurrentWeatherProps> = ({ data, loading, e
     );
   }
 
+  // Add safety checks for API response
+  if (!data || !data.current || !data.current.condition || !data.location) {
+    return (
+      <Card className="p-6 bg-gradient-glass backdrop-blur-sm border-red-300/20 shadow-weather rounded-3xl">
+        <div className="text-center text-red-500">
+          <Cloud className="h-12 w-12 mx-auto mb-2 opacity-50" />
+          <p className="text-lg font-medium">Invalid weather data</p>
+        </div>
+      </Card>
+    );
+  }
+
   const { location, current, forecast } = data;
-  const sunrise = forecast.forecastday[0]?.astro.sunrise || "6:30 AM";
+  const sunrise = forecast?.forecastday?.[0]?.astro?.sunrise || "6:30 AM";
 
   return (
     <Card className="p-6 bg-gradient-glass backdrop-blur-sm border-white/20 shadow-weather rounded-3xl 
