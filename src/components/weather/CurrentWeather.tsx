@@ -37,13 +37,17 @@ export const CurrentWeather: React.FC<CurrentWeatherProps> = ({ data, loading, e
     );
   }
 
-  // Add safety checks for API response
-  if (!data || !data.current || !data.current.condition || !data.location) {
+  // Add safety checks for API response - check if required data exists
+  if (!data || !data.current || !data.current.condition || !data.location || 
+      !data.current.temp_c || data.current.temp_c === undefined) {
     return (
       <Card className="p-6 bg-gradient-glass backdrop-blur-sm border-red-300/20 shadow-weather rounded-3xl">
         <div className="text-center text-red-500">
           <Cloud className="h-12 w-12 mx-auto mb-2 opacity-50" />
-          <p className="text-lg font-medium">Invalid weather data</p>
+          <p className="text-lg font-medium">Weather data unavailable</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            The selected location may not have current weather data available
+          </p>
         </div>
       </Card>
     );
